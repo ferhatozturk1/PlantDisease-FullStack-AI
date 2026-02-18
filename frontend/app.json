@@ -7,8 +7,12 @@
     "userInterfaceStyle": "light",
     "platforms": [
       "ios",
-      "android"
+      "android",
+      "web"
     ],
+    "web": {
+      "bundler": "metro"
+    },
     "ios": {
       "supportsTablet": true
     },

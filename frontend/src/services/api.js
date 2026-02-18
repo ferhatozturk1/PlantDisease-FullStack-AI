@@ -1,48 +1,57 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// CRITICAL: Replace this with your computer's local IP address
-// To find your IP on Windows: Open CMD and type "ipconfig"
-// Look for "IPv4 Address" under your active network adapter
-// Example: http://192.168.1.35:8000
-const API_URL = 'http://192.168.1.143:8000';
+const API_BASE = 'http://localhost:8000';
 
-/**
- * Send image to backend for plant disease prediction
- * @param {string} imageUri - URI of the selected image
- * @returns {Promise} - Prediction result
- */
-export const predictPlantDisease = async (imageUri) => {
+// Axios instance
+const api = axios.create({
+    baseURL: API_BASE,
+    timeout: 15000,
+});
+
+// Her istekte token varsa Authorization header ekle
+api.interceptors.request.use(async (config) => {
     try {
-        // Create FormData
-        const formData = new FormData();
+        const token = await AsyncStorage.getItem('userToken');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+    } catch (e) {
+        // ignore
+    }
+    return config;
+});
 
-        // Extract filename from URI
-        const filename = imageUri.split('/').pop();
-        const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : 'image/jpeg';
+// Bitki hastalığı tespiti
+export const predictPlantDisease = async (imageUri) => {
+    const formData = new FormData();
 
-        // Append image to FormData
+    // Web ve native için farklı format
+    if (typeof imageUri === 'string' && imageUri.startsWith('data:')) {
+        // Web: base64
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        formData.append('file', blob, 'plant.jpg');
+    } else {
+        // Native
         formData.append('file', {
             uri: imageUri,
-            name: filename,
-            type: type,
+            type: 'image/jpeg',
+            name: 'plant.jpg',
         });
-
-        // Send POST request
-        const response = await axios.post(`${API_URL}/api/predict`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-            timeout: 30000, // 30 seconds timeout
-        });
-
-        return response.data;
-    } catch (error) {
-        console.error('API Error:', error);
-        throw error;
     }
+
+    const response = await api.post('/api/predict', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    return response;
 };
 
-export default {
-    predictPlantDisease,
+// Geçmiş teşhisler
+export const getHistory = async () => {
+    const response = await api.get('/api/history');
+    return response;
 };
+
+export default api;

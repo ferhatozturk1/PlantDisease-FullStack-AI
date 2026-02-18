@@ -1,14 +1,86 @@
-# Python Gereksizleri
+# ================================
+# Python / Backend
+# ================================
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+*.pyc
+.Python
 venv/
+env/
+.venv/
+ENV/
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ================================
+# Environment & Secrets
+# ================================
 .env
+.env.*
+!.env.example
+*.pem
+*.key
 
-# React Native / Node.js Gereksizleri
+# ================================
+# AI Model Dosyaları (büyük dosyalar)
+# ================================
+*.h5
+*.keras
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.pkl
+*.joblib
+models/
+
+# ================================
+# React Native / Node.js / Frontend
+# ================================
 node_modules/
-.expo/
-npm-debug.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
 
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# ================================
+# IDE & Editör
+# ================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ================================
 # Sistem Dosyaları
+# ================================
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# ================================
+# Log Dosyaları
+# ================================
+*.log
+logs/

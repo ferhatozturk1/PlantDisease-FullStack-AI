@@ -11,9 +11,14 @@ def load_ai_model():
     """Load the trained model (called once at startup)"""
     global model
     if model is None:
+        import os
+        if not os.path.exists(MODEL_PATH):
+            print(f"[WARNING] Model dosyasi bulunamadi: {MODEL_PATH}")
+            print("[WARNING] /api/predict endpoint'i calismaycak. Model dosyasini ekleyin.")
+            return None
         print(f"Loading model from {MODEL_PATH}...")
         model = load_model(MODEL_PATH)
-        print("Model loaded successfully!")
+        print("[OK] Model loaded successfully!")
     return model
 
 def preprocess_image(image: Image.Image) -> np.ndarray:

@@ -1,8 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import diagnosis
+from app.api import auth
 from app.services.ai_service import load_ai_model
 from app.core.config import API_TITLE, API_VERSION, API_DESCRIPTION
+from app.database import engine
+from app import models
+
+# Tabloları oluştur (yoksa)
+models.Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -14,13 +20,14 @@ app = FastAPI(
 # Add CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Include routers
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(diagnosis.router, prefix="/api", tags=["Diagnosis"])
 
 # Startup event: Load model once
