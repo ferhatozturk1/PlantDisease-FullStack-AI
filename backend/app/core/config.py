@@ -8,7 +8,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Model configuration
-MODEL_PATH = os.path.join(BASE_DIR, "app", "services", "models", "model.h5")
+MODEL_PATH = os.path.join(BASE_DIR, "app", "services", "models", "model.keras")
 
 # API configuration
 API_TITLE = "Plant Disease Detection API"

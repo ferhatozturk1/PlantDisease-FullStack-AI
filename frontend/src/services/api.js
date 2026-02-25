@@ -26,14 +26,15 @@ api.interceptors.request.use(async (config) => {
 export const predictPlantDisease = async (imageUri) => {
     const formData = new FormData();
 
-    // Web ve native için farklı format
-    if (typeof imageUri === 'string' && imageUri.startsWith('data:')) {
-        // Web: base64
+    // Web: blob: veya data: URI → fetch ile Blob'a çevir
+    // Native: { uri, type, name } objesi olarak gönder
+    if (typeof imageUri === 'string' && (imageUri.startsWith('data:') || imageUri.startsWith('blob:'))) {
+        // Web ortamı
         const response = await fetch(imageUri);
         const blob = await response.blob();
         formData.append('file', blob, 'plant.jpg');
     } else {
-        // Native
+        // React Native ortamı
         formData.append('file', {
             uri: imageUri,
             type: 'image/jpeg',
@@ -43,6 +44,7 @@ export const predictPlantDisease = async (imageUri) => {
 
     const response = await api.post('/api/predict', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 30000, // model yanıt süresi için 30sn
     });
 
     return response;
