@@ -33,15 +33,18 @@ async def predict_plant_disease(
         image = Image.open(io.BytesIO(image_data))
         result = predict_disease(image)
 
-        disease_name = result["disease"]
-        confidence = result["confidence"]
+        disease_name   = result["disease"]
+        confidence     = result["confidence"]
+        turkish_name   = result.get("turkish_name", disease_name)
+        treatment      = result.get("treatment", "")
+        is_healthy     = result.get("is_healthy", False)
 
         # Giriş yapmış kullanıcıysa DB'ye kaydet
         if user is not None:
             diagnosis = Diagnosis(
                 user_id=user.id,
                 image_filename=file.filename,
-                disease_name=disease_name,
+                disease_name=turkish_name,   # Türkçe ismi kaydet
                 confidence_score=float(confidence),
             )
             db.add(diagnosis)
@@ -56,8 +59,11 @@ async def predict_plant_disease(
         return {
             "success": True,
             "data": {
-                "disease": disease_name,
-                "confidence": confidence,
+                "disease":      disease_name,
+                "turkish_name": turkish_name,
+                "treatment":    treatment,
+                "is_healthy":   is_healthy,
+                "confidence":   confidence,
             },
             "saved": saved,
             "diagnosis_id": diagnosis_id,

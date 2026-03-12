@@ -47,12 +47,17 @@ export default function HomeScreen({ navigation }) {
         try {
             const response = await predictPlantDisease(selectedImage);
             if (response.data.success) {
-                setResult({ ...response.data.data, saved: response.data.saved });
+                setResult({
+                    ...response.data.data,
+                    saved: response.data.saved,
+                    is_guest: response.data.is_guest,
+                });
             } else {
                 Alert.alert('Hata', 'Resim analiz edilemedi');
             }
         } catch (error) {
-            Alert.alert('Bağlantı Hatası', 'Sunucuya bağlanılamadı.');
+            console.error('Analiz hatası:', error?.response?.data || error.message);
+            Alert.alert('Bağlantı Hatası', 'Sunucuya bağlanılamadı. Backend çalışıyor mu?');
         } finally {
             setLoading(false);
         }
@@ -133,21 +138,65 @@ export default function HomeScreen({ navigation }) {
                 {/* Sonuç */}
                 {result && !loading && (
                     <View style={styles.resultCard}>
+                        {/* Başlık */}
                         <View style={styles.resultHeader}>
-                            <Text style={styles.resultCheckmark}>✅</Text>
-                            <Text style={styles.resultDisease}>{result.disease}</Text>
+                            <Text style={styles.resultCheckmark}>
+                                {result.is_healthy ? '✅' : '⚠️'}
+                            </Text>
+                            <Text style={[
+                                styles.resultDisease,
+                                { color: result.is_healthy ? '#2e7d32' : '#e65100' }
+                            ]}>
+                                {result.turkish_name || result.disease}
+                            </Text>
                         </View>
+
                         <View style={styles.resultDivider} />
+
+                        {/* Hastalık Adı */}
                         <View style={styles.resultRow}>
                             <Text style={styles.resultLabel}>Hastalık Adı</Text>
-                            <Text style={styles.resultValue}>{result.disease}</Text>
+                            <Text style={styles.resultValue} numberOfLines={2}>
+                                {result.turkish_name || result.disease}
+                            </Text>
                         </View>
+
+                        {/* Güven Oranı */}
                         <View style={styles.resultRow}>
                             <Text style={styles.resultLabel}>Güven Oranı</Text>
-                            <Text style={[styles.resultValue, styles.confidenceText]}>
+                            <Text style={[
+                                styles.resultValue,
+                                styles.confidenceText,
+                                { color: result.confidence >= 70 ? '#2e7d32' : '#e65100' }
+                            ]}>
                                 %{result.confidence}
                             </Text>
                         </View>
+
+                        {/* Tedavi Kutusu */}
+                        <View style={[
+                            styles.treatmentBox,
+                            {
+                                backgroundColor: result.is_healthy ? '#e8f5e9' : '#fff8e1',
+                                borderColor: result.is_healthy ? '#a5d6a7' : '#ffcc80'
+                            }
+                        ]}>
+                            <View style={styles.treatmentHeader}>
+                                <Text style={styles.treatmentIcon}>
+                                    {result.is_healthy ? '🍃' : 'ℹ️'}
+                                </Text>
+                                <Text style={[
+                                    styles.treatmentTitle,
+                                    { color: result.is_healthy ? '#1b5e20' : '#bf360c' }
+                                ]}>
+                                    {result.is_healthy ? 'Bakım Önerileri' : 'Tedavi ve Öneriler'}
+                                </Text>
+                            </View>
+                            <Text style={styles.treatmentText}>
+                                {result.treatment || 'Öneri bulunamadı.'}
+                            </Text>
+                        </View>
+
                         {result.saved && (
                             <Text style={styles.savedNote}>📊 Geçmişe kaydedildi</Text>
                         )}
@@ -237,20 +286,20 @@ const styles = StyleSheet.create({
     loadingText: { marginTop: 10, fontSize: 14, color: COLORS.TEXT_MEDIUM },
     resultCard: {
         backgroundColor: COLORS.BACKGROUND_WHITE,
-        borderRadius: 12,
+        borderRadius: 14,
         padding: 16,
         marginTop: 8,
         borderWidth: 1,
         borderColor: COLORS.BORDER_LIGHT,
-        shadowColor: COLORS.SHADOW,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 4,
     },
-    resultHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-    resultCheckmark: { fontSize: 20 },
-    resultDisease: { fontSize: 16, fontWeight: '700', color: COLORS.PRIMARY_GREEN, flex: 1 },
+    resultHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 12 },
+    resultCheckmark: { fontSize: 22, marginTop: 1 },
+    resultDisease: { fontSize: 15, fontWeight: '700', flex: 1, lineHeight: 22 },
     resultDivider: { height: 1, backgroundColor: COLORS.BORDER_LIGHT, marginBottom: 12 },
     resultRow: {
         flexDirection: 'row',
@@ -259,8 +308,19 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
     },
     resultLabel: { fontSize: 13, color: COLORS.TEXT_MEDIUM },
-    resultValue: { fontSize: 14, fontWeight: '600', color: COLORS.TEXT_DARK },
-    confidenceText: { color: COLORS.PRIMARY_GREEN, fontSize: 16 },
+    resultValue: { fontSize: 14, fontWeight: '600', color: COLORS.TEXT_DARK, flex: 1, textAlign: 'right' },
+    confidenceText: { fontSize: 16, fontWeight: '700' },
+    /* ── Tedavi Kutusu ── */
+    treatmentBox: {
+        marginTop: 14,
+        borderRadius: 10,
+        borderWidth: 1,
+        padding: 12,
+    },
+    treatmentHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+    treatmentIcon: { fontSize: 16 },
+    treatmentTitle: { fontSize: 13, fontWeight: '700' },
+    treatmentText: { fontSize: 13, color: '#333', lineHeight: 20 },
     savedNote: { marginTop: 12, fontSize: 12, color: COLORS.TEXT_MEDIUM, textAlign: 'center' },
     searchBox: {
         flexDirection: 'row',
